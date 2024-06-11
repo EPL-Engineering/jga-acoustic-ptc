@@ -1,8 +1,10 @@
 ## Changelog
 
-### v1.2 (unreleased)
+### v1.2 (2024-06-11)
 #### Changed
 - changed minimum level to -20 dB instead of 0
+#### Fixed
+- Explicitly finds MOTU speaker device ID
 
 ---
 
