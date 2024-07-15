@@ -1,5 +1,14 @@
 ## Changelog
 
+### v1.3 (unreleased)
+#### Added
+- "sub-electrode" frequency spacing for masker sweeps
+- replot track when data row selected on summary table
+#### Changed
+- modified calibration to accommodate sub-electrode spacing
+
+---
+
 ### v1.2.1 (2024-06-13)
 #### Added
 - volume control (force to 25% before playing sound)

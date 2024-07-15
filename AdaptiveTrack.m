@@ -88,7 +88,11 @@ classdef AdaptiveTrack
             obj.CurrentValue = obj.InitialValue;
          end
          
-         obj.history = struct('value', [], 'correctInterval', [], 'response', [], 'reactionTime', [], 'isCorrect', [], 'isReversal', []);
+         if obj.isDiscrete
+            obj.history = struct('index', [], 'value', [], 'correctInterval', [], 'response', [], 'reactionTime', [], 'isCorrect', [], 'isReversal', []);
+         else
+            obj.history = struct('value', [], 'correctInterval', [], 'response', [], 'reactionTime', [], 'isCorrect', [], 'isReversal', []);
+         end
          obj.Status = 'active';
          
       end
@@ -97,14 +101,29 @@ classdef AdaptiveTrack
       function obj = Update(obj, actualResponse, correctResponse, reactionTime)
          isCorrect = actualResponse == correctResponse;
 
-         obj.history(end+1) = struct(...
-            'value', obj.CurrentValue, ...
-            'correctInterval', correctResponse, ...
-            'response', actualResponse, ...
-            'reactionTime', reactionTime, ...
-            'isCorrect', isCorrect, ...
-            'isReversal', false);
-         
+         if obj.isDiscrete
+            value = obj.values(obj.valueIndex);
+            if ~isempty(obj.secondaryName)
+               value = obj.itemValues(obj.valueIndex);
+            end
+            obj.history(end+1) = struct(...
+               'index', obj.valueIndex, ...
+               'value', value, ...
+               'correctInterval', correctResponse, ...
+               'response', actualResponse, ...
+               'reactionTime', reactionTime, ...
+               'isCorrect', isCorrect, ...
+               'isReversal', false);
+         else
+            obj.history(end+1) = struct(...
+               'value', obj.CurrentValue, ...
+               'correctInterval', correctResponse, ...
+               'response', actualResponse, ...
+               'reactionTime', reactionTime, ...
+               'isCorrect', isCorrect, ...
+               'isReversal', false);
+         end
+
          if isCorrect ~= obj.lastCorrect
             obj.numConsecutive = 0;
          end
@@ -199,6 +218,11 @@ classdef AdaptiveTrack
       end
 
       %--------------------------------------------------------------------
+      function obj = SetHistory(obj, data)
+         obj.history = data;
+      end
+
+      %--------------------------------------------------------------------
       function obj = PlotTrack(obj, hax)
          correctColor = [0 0.5 0];
          wrongColor = [0.5 0 0];
@@ -216,7 +240,11 @@ classdef AdaptiveTrack
 
          isCorrect = [obj.history.isCorrect];
          isReversal = [obj.history.isReversal];
-         value = [obj.history.value];
+         if obj.isDiscrete
+            value = [obj.history.index];
+         else
+            value = [obj.history.value];
+         end
 
          ifilt = find(isCorrect & ~isReversal);
          if ~isempty(ifilt)
