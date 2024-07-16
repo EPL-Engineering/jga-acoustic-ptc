@@ -4,6 +4,21 @@ function CornerFreqs = aptc_get_corner_freqs(presentationMode, filterType, numAc
 % "FilterCorners_NaidaQ_NaidaM_Share_MEEI.docx".
 %
 
+SpecialCornerFreqs = ...
+{[306	986	2005	8054]	 	 	 	 	 	 	 	 	 	 	 	 
+[306	782	1393	2481	8054]	 	 	 	 	 	 	 	 	 	 	 
+[306	714	1121	1733	2821	8054]	 	 	 	 	 	 	 	 	 	 
+[306	646	918	1393	2073	3093	8054]	 	 	 	 	 	 	 	 	 
+[306	578	850	1189	1665	2345	3364	8054]	 	 	 	 	 	 	 	 
+[306	578	782	1054	1393	1869	2549	3500	8054]	 	 	 	 	 	 	 
+[306	510	714	918	1189	1597	2073	2753	3636	8054]	 	 	 	 	 	 
+[306	510	646	850	1054	1393	1801	2277	2957	3772	8054]	 	 	 	 	 
+[306	510	646	782	986	1257	1529	1937	2481	3093	3908	8054]	 	 	 	 
+[306	510	646	714	918	1121	1393	1733	2141	2617	3229	4044	8054]	 	 	 
+[306	510	578	714	850	1054	1257	1529	1869	2277	2753	3364	4112	8054]	 	 
+[306	442	578	646	782	986	1189	1393	1665	2005	2413	2889	3500	4180	8054]	 
+[1054 1083 1112 1141 1170 1199 1228 1257 1291 1325 1359 1393 1427 1461 1495 1529]};
+
 NaidaQ_Standard = ...
 {[306	986	2005	8054]	 	 	 	 	 	 	 	 	 	 	 	 
 [306	782	1393	2481	8054]	 	 	 	 	 	 	 	 	 	 	 
@@ -92,5 +107,6 @@ elseif strcmp(presentationMode, 'Naida M Bluetooth')
    end
 
 else % normal hearing
+%     CornerFreqs = cell2mat(SpecialCornerFreqs(end,:));
     CornerFreqs = cell2mat(NaidaQ_Standard(end,:));
 end
