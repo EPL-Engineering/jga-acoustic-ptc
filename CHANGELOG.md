@@ -6,6 +6,9 @@
 - replot track when data row selected on summary table
 #### Changed
 - modified calibration to accommodate sub-electrode spacing
+- force volume to 100% when using CI Bluetooth
+- only look for MOTU device for normal hearing
+- turn off keep-alive signal before delivering stimuli and back on right after
 
 ---
 
