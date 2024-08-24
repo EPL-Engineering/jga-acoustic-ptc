@@ -9,6 +9,8 @@
 - force volume to 100% when using CI Bluetooth
 - only look for MOTU device for normal hearing
 - turn off keep-alive signal before delivering stimuli and back on right after
+#### Fixed
+- fill masker table based on Start level in 'Vary masker level' mode
 
 ---
 
