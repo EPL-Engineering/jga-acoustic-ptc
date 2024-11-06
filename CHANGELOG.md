@@ -4,6 +4,7 @@
 #### Added
 - "sub-electrode" frequency spacing for masker sweeps
 - replot track when data row selected on summary table
+- "Pediatric" method (animated gif buttons, modified adaptive tracking)
 #### Changed
 - modified calibration to accommodate sub-electrode spacing
 - force volume to 100% when using CI Bluetooth

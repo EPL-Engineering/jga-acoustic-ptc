@@ -1,4 +1,4 @@
-classdef AdaptiveTrack
+classdef AdaptiveTrackPedi
    % ADAPTIVETRACK -- encapsulates properties and methods for executing an
    % adaptive tracking procedure.
    % $Rev: 45 $
@@ -6,14 +6,16 @@ classdef AdaptiveTrack
    
    properties (SetAccess = public)     
       NumIntervals = 2;
-      NumDown = 2;
+      NumDown = 3;
       NumUp = 1;
-      NumReversalsToAcquire = 6;
+      NumReversalsToAcquire = 5;
       NumReversalsToAverage = 4;
       InitialValue = NaN;
       MinValue = -Inf;
       MaxValue = +Inf;
       VariableName = '';
+      InitialStepSize = 8;
+      MinStepSize = 2;
       StepSize = 1; % step size in the "up" direction, i.e. in response to being wrong
    end
 
@@ -37,12 +39,17 @@ classdef AdaptiveTrack
       values = [];
       secondaryName = '';
       itemValues = []; % for discrete tracks
+      stepSizesUsed = [];
+      anyWrong;
+      currentStepSize;
+      currentTrialIsProbe
+      stashedValue;
       numTestEdgeIncorrect = 4;
       numTestEdgeCorrect = 6;
    end
    
    methods
-      function obj = AdaptiveTrack()
+      function obj = AdaptiveTrackPedi()
       end
       
       %--------------------------------------------------------------------
@@ -81,6 +88,10 @@ classdef AdaptiveTrack
          obj.numConsecutive = 0;
          obj.lastDirection = 0;
          obj.reversals = [];
+         obj.anyWrong = false;
+         obj.currentStepSize = obj.InitialStepSize;
+         obj.currentTrialIsProbe = false;
+
          if obj.isDiscrete
             obj.valueIndex = obj.InitialValue;
             obj.CurrentValue = obj.values(obj.valueIndex);
@@ -89,9 +100,9 @@ classdef AdaptiveTrack
          end
          
          if obj.isDiscrete
-            obj.history = struct('index', {}, 'value', {}, 'correctInterval', {}, 'response', {}, 'reactionTime', {}, 'isCorrect', {}, 'isReversal', {});
+            obj.history = struct('index', {}, 'value', {}, 'isProbe', {}, 'correctInterval', {}, 'response', {}, 'reactionTime', {}, 'isCorrect', {}, 'isReversal', {});
          else
-            obj.history = struct('value', {}, 'correctInterval', {}, 'response', {}, 'reactionTime', {}, 'isCorrect', {}, 'isReversal', {});
+            obj.history = struct('value', {}, 'isProbe', {}, 'correctInterval', {}, 'response', {}, 'reactionTime', {}, 'isCorrect', {}, 'isReversal', {});
          end
          obj.Status = 'active';
          
@@ -109,6 +120,7 @@ classdef AdaptiveTrack
             obj.history(end+1) = struct(...
                'index', obj.valueIndex, ...
                'value', value, ...
+               'isProbe', obj.currentTrialIsProbe, ...
                'correctInterval', correctResponse, ...
                'response', actualResponse, ...
                'reactionTime', reactionTime, ...
@@ -117,6 +129,7 @@ classdef AdaptiveTrack
          else
             obj.history(end+1) = struct(...
                'value', obj.CurrentValue, ...
+               'isProbe', obj.currentTrialIsProbe, ...
                'correctInterval', correctResponse, ...
                'response', actualResponse, ...
                'reactionTime', reactionTime, ...
@@ -128,11 +141,23 @@ classdef AdaptiveTrack
             obj.numConsecutive = 0;
          end
 
+         if obj.currentTrialIsProbe
+            if isCorrect
+               obj = obj.ClearProbe();
+            elseif length(obj.history) > 2 && all([obj.history(end-2:end).isProbe])
+               obj.Status = 'not responding to probes';
+            end
+            return;
+         end
+
          if isCorrect
             obj.numConsecutive = obj.numConsecutive + 1;
 
             downCriterion = obj.NumDown;
-            if obj.isDiscrete && ((obj.valueIndex == 1 && obj.StepSize(1) > 0) || (obj.valueIndex == length(obj.values) && obj.StepSize(1) < 0))
+            if ~obj.anyWrong
+               % *** RULE (1) ***
+               downCriterion = 1;
+            elseif obj.isDiscrete && ((obj.valueIndex == 1 && obj.InitialStepSize > 0) || (obj.valueIndex == length(obj.values) && obj.InitialStepSize < 0))
                downCriterion = obj.numTestEdgeCorrect;
             end
 
@@ -142,18 +167,22 @@ classdef AdaptiveTrack
                if obj.lastDirection == 1
                   obj.history(end).isReversal = true;
                   obj.reversals(end+1) = obj.CurrentValue;
+                  % *** RULE (3) ***
+                  obj.currentStepSize = sign(obj.currentStepSize) * max(abs(obj.MinStepSize), abs(obj.currentStepSize / 2));
+               elseif obj.anyWrong && length(obj.stepSizesUsed) > 1 && all(obj.stepSizesUsed(end-1:end) == obj.currentStepSize)
+                  % *** RULE (5) ***
+                  obj.currentStepSize = obj.currentStepSize * 2;
                end
-               obj = obj.UpdateValue('down', length(obj.reversals));              
+               obj = obj.UpdateValue('down');              
             end
 
          else % INCORRECT
+            obj.anyWrong = true;
             obj.numConsecutive = obj.numConsecutive + 1;
             
             upCriterion = obj.NumUp;
-            if obj.isDiscrete && ((obj.valueIndex == 1 && obj.StepSize(1) < 0) || (obj.valueIndex == length(obj.values) && obj.StepSize(1) > 0))
+            if obj.isDiscrete && ((obj.valueIndex == 1 && obj.InitialStepSize < 0) || (obj.valueIndex == length(obj.values) && obj.InitialStepSize > 0))
                upCriterion = obj.numTestEdgeIncorrect;
-%             elseif obj.CurrentValue == obj.MinValue || obj.CurrentValue == obj.MaxValue
-%                upCriterion = obj.numTestEdgeIncorrect;
             end
             
             if obj.numConsecutive == upCriterion
@@ -162,10 +191,16 @@ classdef AdaptiveTrack
                if obj.lastDirection == -1
                   obj.history(end).isReversal = true;
                   obj.reversals(end+1) = obj.CurrentValue;
+                  obj.currentStepSize = sign(obj.currentStepSize) * max(abs(obj.MinStepSize), abs(obj.currentStepSize / 2));
+               elseif length(obj.stepSizesUsed) > 1 && all(obj.stepSizesUsed(end-1:end) == obj.currentStepSize)
+                  % *** RULE (5) ***
+                  obj.currentStepSize = obj.currentStepSize * 2;
                end
 
-               obj = obj.UpdateValue('up', length(obj.reversals));
-
+               obj = obj.UpdateValue('up');
+            end
+            if length(obj.history) > 2 && ~any([obj.history(end-2:end).isCorrect])
+               obj = obj.DoProbe();
             end
          end
 
@@ -188,6 +223,29 @@ classdef AdaptiveTrack
       end
 
       %--------------------------------------------------------------------
+      function obj = DoProbe(obj)
+         obj.currentTrialIsProbe = true;
+         if obj.isDiscrete
+            obj.stashedValue = obj.valueIndex;
+            obj.valueIndex = obj.InitialValue;
+         else
+            obj.stashedValue = obj.CurrentValue;
+            obj.CurrentValue = obj.InitialValue;
+         end
+      end
+
+      %--------------------------------------------------------------------
+      function obj = ClearProbe(obj)
+         obj.currentTrialIsProbe = false;
+         if obj.isDiscrete
+            obj.valueIndex = obj.stashedValue;
+            obj.CurrentValue = obj.values(obj.valueIndex);
+         else
+            obj.CurrentValue = obj.stashedValue;
+         end
+      end
+
+      %--------------------------------------------------------------------
       function reversals = GetReversalsToAverage(obj)
          reversals = obj.reversals((obj.NumReversalsToAcquire - obj.NumReversalsToAverage + 1):end);
       end
@@ -204,7 +262,6 @@ classdef AdaptiveTrack
             'MinValue', obj.MinValue, ...
             'MaxValue', obj.MaxValue, ...
             'VariableName', obj.VariableName, ...
-            'StepSize', obj.StepSize, ...
             'Operation', obj.Operation, ...
             'Metric', obj.Metric);
 
@@ -240,30 +297,36 @@ classdef AdaptiveTrack
 
          isCorrect = [obj.history.isCorrect];
          isReversal = [obj.history.isReversal];
+         isProbe = [obj.history.isProbe];
          if obj.isDiscrete
             value = [obj.history.index];
          else
             value = [obj.history.value];
          end
 
-         ifilt = find(isCorrect & ~isReversal);
+         ifilt = find(isCorrect & ~isReversal & ~isProbe);
          if ~isempty(ifilt)
             plot(hax, ifilt, value(ifilt), 'o', 'Color', correctColor, 'LineWidth', 1.25);
          end
 
-         ifilt = find(isCorrect & isReversal);
+         ifilt = find(isCorrect & isReversal & ~isProbe);
          if ~isempty(ifilt)
             plot(hax, ifilt, value(ifilt), 'o', 'Color', correctColor, 'MarkerFaceColor', correctColor, 'LineWidth', 1);
          end
 
-         ifilt = find(~isCorrect & ~isReversal);
+         ifilt = find(~isCorrect & ~isReversal & ~isProbe);
          if ~isempty(ifilt)
             plot(hax, ifilt, value(ifilt), 'o', 'Color', wrongColor, 'LineWidth', 1.25);
          end
 
-         ifilt = find(~isCorrect & isReversal);
+         ifilt = find(~isCorrect & isReversal & ~isProbe);
          if ~isempty(ifilt)
             plot(hax, ifilt, value(ifilt), 'o', 'Color', wrongColor, 'MarkerFaceColor', wrongColor, 'LineWidth', 1);
+         end
+
+         ifilt = find(isProbe);
+         if ~isempty(ifilt)
+            plot(hax, ifilt, value(ifilt), 's', 'Color', 'b', 'MarkerFaceColor', 'b', 'LineWidth', 1);
          end
 
          set(hax, 'XLim', [0 ceil(length(obj.history)/10) * 10 + 1]);
@@ -320,13 +383,15 @@ classdef AdaptiveTrack
    % PRIVATE METHODS
    %--------------------------------------------------------------------------
    methods (Access = private)
-      function obj = UpdateValue(obj, direction, nrev)
-         delta = obj.StepSize(min(nrev+1, length(obj.StepSize)));
+      function obj = UpdateValue(obj, direction)
+         delta = obj.currentStepSize;
+         fprintf('delta = %f\n', delta);
+         obj.stepSizesUsed(end+1) = delta;
          switch obj.Operation
             case 'add'
                if isequal(direction, 'down'), delta = -delta; end
                if obj.isDiscrete
-                  obj.valueIndex = obj.valueIndex + delta;
+                  obj.valueIndex = obj.valueIndex + round(delta);
                else
                   obj.CurrentValue = obj.CurrentValue + delta;
                end
@@ -337,7 +402,7 @@ classdef AdaptiveTrack
 
          if isequal(direction, 'down')
             obj.lastDirection = -1;
-         else
+         elseif isequal(direction, 'up')
             obj.lastDirection = 1;
          end
       end
