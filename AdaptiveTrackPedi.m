@@ -385,7 +385,6 @@ classdef AdaptiveTrackPedi
    methods (Access = private)
       function obj = UpdateValue(obj, direction)
          delta = obj.currentStepSize;
-         fprintf('delta = %f\n', delta);
          obj.stepSizesUsed(end+1) = delta;
          switch obj.Operation
             case 'add'
