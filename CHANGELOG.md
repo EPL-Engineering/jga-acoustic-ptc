@@ -1,6 +1,6 @@
 ## Changelog
 
-### v1.3 (unreleased)
+### v1.3 (2024-11-11)
 #### Added
 - "sub-electrode" frequency spacing for masker sweeps
 - replot track when data row selected on summary table
