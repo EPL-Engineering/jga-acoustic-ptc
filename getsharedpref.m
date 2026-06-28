@@ -3,7 +3,7 @@ function value = getsharedpref(name, pref, defaultValue)
 if nargin < 3, defaultValue = []; end
 value = defaultValue;
 
-prefPath = 'C:\ProgramData\EPL\sharedprefs.mat';
+prefPath = 'C:\EPL\sharedprefs.mat';
 
 if exist(prefPath, 'file')
    load(prefPath, 'Prefs');

@@ -1,6 +1,6 @@
 function setsharedpref(name, pref, value)
 
-prefPath = 'C:\ProgramData\EPL\sharedprefs.mat';
+prefPath = 'C:\EPL\sharedprefs.mat';
 
 if exist(prefPath, 'file')
    load(prefPath, 'Prefs');
