@@ -17,7 +17,7 @@ SpecialCornerFreqs = ...
 [306	510	646	714	918	1121	1393	1733	2141	2617	3229	4044	8054]	 	 	 
 [306	510	578	714	850	1054	1257	1529	1869	2277	2753	3364	4112	8054]	 	 
 [306	442	578	646	782	986	1189	1393	1665	2005	2413	2889	3500	4180	8054]	 
-[1054 1083 1112 1141 1170 1199 1228 1257 1291 1325 1359 1393 1427 1461 1495 1529]};
+[306	442	500	646	782	918	1000	1257	1529	1801	2000	2549	3025	3568	4248	8054]};
 
 NaidaQ_Standard = ...
 {[306	986	2005	8054]	 	 	 	 	 	 	 	 	 	 	 	 
@@ -88,6 +88,8 @@ NaidaM_ExtendedLow = ...
 
 len_NaidaM_ExtendedLow = cellfun(@length, NaidaM_ExtendedLow);
 
+Cochlear = generate_Cochlear_FATs();
+
 if strcmp(presentationMode, 'Naida Q ComPilot') || strcmp(presentationMode, 'Naida Q Connect')
    if strcmp(filterType, 'Standard')
       ifilt = len_NaidaQ_Standard == numActiveElectrodes;
@@ -101,12 +103,14 @@ elseif strcmp(presentationMode, 'Naida M Bluetooth')
    if strcmp(filterType, 'Standard')
       ifilt = len_NaidaM_Standard == numActiveElectrodes;
       CornerFreqs = cell2mat(NaidaM_Standard(ifilt, :));
-   else
+   elseif strcmp(filterType, 'Extended Low')
       ifilt = len_NaidaM_ExtendedLow == numActiveElectrodes;
       CornerFreqs = cell2mat(NaidaM_ExtendedLow(ifilt, :));
    end
-
+elseif strcmp(presentationMode, 'Cochlear TV Streamer')
+    CornerFreqs = cell2mat(Cochlear(23-numActiveElectrodes, :));
 else % normal hearing
-%     CornerFreqs = cell2mat(SpecialCornerFreqs(end,:));
-    CornerFreqs = cell2mat(NaidaQ_Standard(end,:));
+     %CornerFreqs = cell2mat(NaidaM_Standard(end,:));
+    %CornerFreqs = cell2mat(NaidaQ_Standard(end,:));
+    CornerFreqs = cell2mat(NaidaM_ExtendedLow(end,:));
 end
