@@ -9,6 +9,9 @@ if exist(prefPath, 'file')
    load(prefPath, 'Prefs');
    if isfield(Prefs, name) && isfield(Prefs.(name), pref)
       value = Prefs.(name).(pref);
+      if isempty(value)
+          value = defaultValue;
+      end
    elseif ispref(name, pref)
       value = getpref(name, pref);
    end
