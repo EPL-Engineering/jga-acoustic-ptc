@@ -1,5 +1,21 @@
 ## Changelog
 
+### v1.5 (2026-08-27)
+#### Added
+- option to allow frequency subdivision for Cochlear devices
+
+---
+
+### v1.4 
+#### Added
+- progress bar
+- Cochlear TV Streamer
+#### Changed
+- moved resources (e.g.: GIFs, calibration) out of app folder into permanent location (C:\EPL)
+- OPP sweep masker: always use defaults based on electrode configuration
+
+---
+
 ### v1.3 (2024-11-11)
 #### Added
 - "sub-electrode" frequency spacing for masker sweeps
