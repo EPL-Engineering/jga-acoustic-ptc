@@ -32,7 +32,7 @@ Name: "C:\EPL";
 [Files]
 Source: "..\*.*"; DestDir: "{app}"; Flags: replacesameversion; Excludes: .gitignore
 Source: "..\Cochlear\*.*"; DestDir: "{app}\Cochlear"; Flags: replacesameversion
-Source: "..\ProgressBar\*.*"; DestDir: "{app}\Cochlear\ProgressBar"; Flags: replacesameversion
+Source: "..\ProgressBar\*.*"; DestDir: "{app}\ProgressBar"; Flags: replacesameversion
 ; === OPP ===
 Source: "{#OppDir}\OPP\*.*"; DestDir: "{app}\OPP\OPP"; Flags: replacesameversion;
 Source: "{#OppDir}\OPP\DotNet\*.*"; DestDir: "{app}\OPP\OPP\DotNet"; Flags: replacesameversion recursesubdirs;
