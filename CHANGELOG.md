@@ -1,5 +1,11 @@
 ## Changelog
 
+### v1.5.1 (2026-09-17)
+#### Fixed
+- bug in OPP (see OPP changelog)
+
+---
+
 ### v1.5 (2026-08-27)
 #### Added
 - option to allow frequency subdivision for Cochlear devices
