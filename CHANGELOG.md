@@ -1,5 +1,11 @@
 ## Changelog
 
+### v1.5.2 (2026-10-15)
+#### Changed
+- beacon behavior in OPP (see OPP changelog)
+
+---
+
 ### v1.5.1 (2026-09-17)
 #### Fixed
 - bug in OPP (see OPP changelog)

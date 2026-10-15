@@ -1,7 +1,7 @@
 ; -- jga-acoustic-ptc.iss --
 
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
-#define SemanticVersion "1.5"
+#define SemanticVersion "1.5.2"
 #define verStr_ StringChange(SemanticVersion, '.', '-')
 
 #define DevRoot GetEnv("DEVROOT")
